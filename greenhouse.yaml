@@ -1,0 +1,5 @@
+substitutions:
+  devicename: greenhouse
+  fullname: Greenhouse
+
+<<: !include esp32_bme280_bh1750_battery.yaml

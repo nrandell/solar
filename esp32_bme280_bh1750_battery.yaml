@@ -1,0 +1,85 @@
+esphome:
+  name: $devicename
+  platform: ESP32
+  board: esp32dev
+
+wifi:
+  ssid: "oakridge"
+  password: "donkeykong"
+  domain: .home
+  fast_connect: true
+  # use_address: lounge
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  # ap:
+  #   ssid: "Lounge Fallback Hotspot"
+  #   password: "juQUPLoA7nmW"
+
+captive_portal:
+
+# Enable logging
+logger:
+  level: info
+
+ota:
+  password: !secret ota_password
+
+mqtt:
+  broker: 192.168.100.5
+  topic_prefix: esphome/${devicename}
+  birth_message:
+    topic: birth_status
+    payload: "online"
+
+  will_message:
+    topic: will_status
+    payload: "offline"
+
+  on_message:
+    - topic: ota_mode
+      payload: "ON"
+      then:
+        - deep_sleep.prevent: deep_sleep_control
+
+    - topic: sleep_mode
+      payload: "ON"
+      then:
+        - deep_sleep.enter: deep_sleep_control
+
+i2c:
+  sda: 21
+  scl: 22
+  scan: false
+  id: bus_a
+
+deep_sleep:
+  id: deep_sleep_control
+  sleep_duration: 900s
+  run_duration: 10s
+
+sensor:
+  - platform: adc
+    pin: 32
+    name: ${fullname} Solar Voltage
+    filters:
+      - multiply: 11
+  - platform: adc
+    pin: 33
+    name: ${fullname} Battery Voltage
+    filters:
+      - multiply: 11
+  - platform: bme280
+    temperature:
+      name: ${fullname} Temperature
+      oversampling: 16x
+    pressure:
+      name: ${fullname} Pressure
+    humidity:
+      name: ${fullname} Humidity
+    address: 0x76
+
+  # - platform: bh1750
+  #   name: ${fullname} Illuminance
+  #   address: 0x23
+  #   measurement_time: 69
+  #   update_interval: 60s
